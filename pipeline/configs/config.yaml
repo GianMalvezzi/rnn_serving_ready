@@ -1,0 +1,3 @@
+PATHS:
+  PIPELINE_ROOT_PATH : 'pipeline/root'
+  TRANSFORM_MODULE_PATH : 'pipeline/transform_utils.py'
