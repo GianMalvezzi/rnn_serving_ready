@@ -67,26 +67,28 @@ def create_pipeline(
     
     components.append(transform)
 
-    trainer = Trainer(
-        module_file=DATA_PATH,
-        transformed_examples=transform.outputs['transformed_examples'],
-        schema=transform.outputs['transform_output'],
-        transform_graph=transform.outputs['transform_graph'],
-        train_args=trainer_pb2.TrainArgs(num_steps=1000),
-        eval_args=trainer_pb2.EvalArgs(num_steps=500))
-
-    components.append(trainer)
-
     tuner = Tuner(
         module_file = DATA_PATH,
         examples = transform.outputs['transformed_examples'],
         transform_graph = transform.outputs['transform_graph'],
         schema = schema_gen.outputs['schema'],
-        train_args=trainer_pb2.TrainArgs(num_steps=500), 
-        eval_args=trainer_pb2.EvalArgs(num_steps=100)
+        train_args=trainer_pb2.TrainArgs(splits=['train']),
+        eval_args=trainer_pb2.EvalArgs(splits=['eval'])
         )
 
     components.append(tuner)
+
+    trainer = Trainer(
+        module_file=DATA_PATH,
+        transformed_examples=transform.outputs['transformed_examples'],
+        schema=schema_gen.outputs['schema'],
+        transform_graph=transform.outputs['transform_graph'],
+        hyperparameters=(tuner.outputs['best_hyperparameters']),
+        train_args=trainer_pb2.TrainArgs(splits=['train']),
+        eval_args=trainer_pb2.EvalArgs(splits=['eval']))
+
+    components.append(trainer)
+
 
     model_resolver = Resolver(
         strategy_class = latest_blessed_model_resolver.LatestBlessedModelStrategy,
