@@ -91,7 +91,7 @@ def create_pipeline(
 
 
     model_resolver = Resolver(
-        strategy_class = latest_blessed_model_resolver.LatestBlessedModelStrategy,
+        strategy_class = latest_blessed_model_resolver.latest_blessed_model_strategy,
         model = Channel(type=Model),
         model_blessing = Channel(
             type = ModelBlessing)
