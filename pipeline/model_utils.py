@@ -4,6 +4,10 @@ from tfx.components.trainer.fn_args_utils import FnArgs
 from configs.config import PIPELINE_NAME, TARGET, FEATURES
 from kerastuner.engine import base_tuner 
 from typing import NamedTuple, Dict, Text, Any 
+import tensorflow_transform as tft
+
+N_EPOCHS = 20
+BATCH_SIZE = 40
 
 def transformed_name(key):
     key = key.replace('-', '_')
@@ -15,8 +19,8 @@ def _gzip_reader_fn(filenames):
 
 def _input_fn(file_pattern, 
               tf_transform_output,
-              num_epochs=None,
-              batch_size=40) -> tf.data.Dataset:
+              num_epochs=N_EPOCHS,
+              batch_size=BATCH_SIZE) -> tf.data.Dataset:
   
   
   transformed_feature_spec =(
@@ -63,7 +67,7 @@ def tuner_fn(fn_args: FnArgs):
     tuner  = kt.Hyperband(
         model_builder,
         objective='val_binary_accuracy',
-        max_epochs=20,
+        max_epochs=N_EPOCHS,
         factor =2,
         directory = fn_args.working_dir,
         project_name = 'kt_hyperband'
