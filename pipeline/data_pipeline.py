@@ -90,12 +90,12 @@ def create_pipeline(
     components.append(trainer)
 
 
-    model_resolver = tfx.dsl.Resolver(
-        strategy_class=tfx.dsl.experimental.LatestBlessedModelStrategy,
-        model=tfx.dsl.Channel(type=tfx.types.standard_artifacts.Model),
-        model_blessing=tfx.dsl.Channel(
-            type=tfx.types.standard_artifacts.ModelBlessing)).with_id(
-                'latest_blessed_model_resolver')
+    model_resolver = Resolver(
+        strategy_class = latest_blessed_model_resolver.latest_blessed_model_strategy,
+        model = Channel(type=Model),
+        model_blessing = Channel(
+            type = ModelBlessing)
+            )
             
     components.append(model_resolver)
 
