@@ -32,8 +32,8 @@ def create_pipeline(
 
     example_gen = tfx.components.CsvExampleGen(input_base = data_path,
                                                input_config=example_gen_pb2.Input(splits=[
-                                example_gen_pb2.Input.Split(name='train', percentage=80),
-                                example_gen_pb2.Input.Split(name='eval', percentage=20)
+                                example_gen_pb2.Input.Split(name='train', pattern='train.csv'),
+                                example_gen_pb2.Input.Split(name='eval', pattern='eval.csv')
                             ]))
     
     components.append(example_gen)
