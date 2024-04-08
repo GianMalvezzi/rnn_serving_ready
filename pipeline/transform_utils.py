@@ -1,6 +1,11 @@
 import tensorflow as tf
 import tensorflow_transform as tft
 
+
+def transformed_name(key):
+    key = key.replace('-', '_')
+    return key + '_xf'
+
 def preprocessing_fn(inputs):
     """Preprocessing function."""
     # Define preprocessing logic using TFT functions
