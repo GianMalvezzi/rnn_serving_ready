@@ -6,13 +6,13 @@ from tfx.proto import example_gen_pb2, trainer_pb2, pusher_pb2
 from tfx.types import Channel as TFXChannel
 from tfx.types.standard_artifacts import Model, ModelBlessing
 from tfx.dsl.experimental import latest_blessed_model_resolver
-from configs.config import TRANSFORM_MODULE_PATH, DATA_PATH
+from configs.config import TRANSFORM_MODULE_PATH, DATA_PATH_TRAIN
 
 
 def create_pipeline(
         pipeline_name,
         pipeline_root,
-        data_path,
+        DATA_PATH_TRAIN,
         serving_dir,
         beam_pipeline_args = None,
         metadata_connection_config=None
@@ -24,13 +24,13 @@ def create_pipeline(
         pipeline_root: directory to store pipeline artifacts
         data_root: input data directory
         module_file: module file to inject customized logic into TFX components
-        metadata_path: path to local sqlite database file
+        metaDATA_PATH_TRAIN: path to local sqlite database file
         beam_pipeline_args: arguments for Beam powered components
     """
     
     components =[]
 
-    example_gen = tfx.components.CsvExampleGen(input_base = data_path,
+    example_gen = CsvExampleGen(input_base = DATA_PATH_TRAIN,
                                                input_config=example_gen_pb2.Input(splits=[
                                 example_gen_pb2.Input.Split(name='train', pattern='train.csv'),
                                 example_gen_pb2.Input.Split(name='eval', pattern='eval.csv')
@@ -39,20 +39,20 @@ def create_pipeline(
     components.append(example_gen)
     
     # Computes statistics over data for visualization and example validation.
-    statistics_gen = tfx.components.StatisticsGen(
+    statistics_gen = StatisticsGen(
         examples=example_gen.outputs['examples'])   
     
     components.append(statistics_gen)
     
     # Generates schema based on statistics files.
-    schema_gen = tfx.components.SchemaGen(
+    schema_gen = SchemaGen(
         statistics=statistics_gen.outputs['statistics'],
         infer_feature_shape=True)   
     
     components.append(schema_gen)
 
     # Performs anomaly detection based on statistics and data schema.
-    example_validator = tfx.components.ExampleValidator(
+    example_validator = ExampleValidator(
         statistics=statistics_gen.outputs['statistics'],
         schema=schema_gen.outputs['schema'],
     )
@@ -68,7 +68,7 @@ def create_pipeline(
     components.append(transform)
 
     tuner = Tuner(
-        module_file = DATA_PATH,
+        module_file = DATA_PATH_TRAIN,
         examples = transform.outputs['transformed_examples'],
         transform_graph = transform.outputs['transform_graph'],
         schema = schema_gen.outputs['schema'],
@@ -79,7 +79,7 @@ def create_pipeline(
     components.append(tuner)
 
     trainer = Trainer(
-        module_file=DATA_PATH,
+        module_file=DATA_PATH_TRAIN,
         transformed_examples=transform.outputs['transformed_examples'],
         schema=schema_gen.outputs['schema'],
         transform_graph=transform.outputs['transform_graph'],
@@ -92,8 +92,8 @@ def create_pipeline(
 
     model_resolver = Resolver(
         strategy_class = latest_blessed_model_resolver.latest_blessed_model_strategy,
-        model = Channel(type=Model),
-        model_blessing = Channel(
+        model = TFXChannel(type=Model),
+        model_blessing = TFXChannel(
             type = ModelBlessing)
             )
             
